@@ -1,6 +1,6 @@
 ### Task
 
-**We are testing Delfi.lv portal. So, You need to:**
+**We are testing https://www.delfi.lv/tasty/ portal. So, You need to:**
 	
 	- Select Food section from the home page
     - Choose any recipe from Delfi Food Home Page
