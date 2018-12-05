@@ -6,6 +6,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.GeckoDriverInfo;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class BaseFunc {
 
     private static final Logger LOGGER = LogManager.getLogger(BaseFunc.class);
 
+    //конструктор
     public BaseFunc() {
         this.initDriver();
     }
@@ -34,7 +37,7 @@ public class BaseFunc {
         System.setProperty(CHROME_PROPERTY, CHROME_DRIVER_LINUX64);
         this.driver = new ChromeDriver();
         LOGGER.info("Starting WEB Browser");
-        wait = new WebDriverWait(driver, 10);
+        wait = new WebDriverWait(driver, 5);
         driver.manage().window().maximize();
     }
 
