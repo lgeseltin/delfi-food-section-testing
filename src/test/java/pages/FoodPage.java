@@ -3,10 +3,11 @@ package pages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import java.util.List;
 
 public class FoodPage {
+
+    private static final By RECEIPT = By.xpath("//div[contains(@class, 'pull-right')]//a[contains(@href, 'recepty')]");
     private static final Logger LOGGER = LogManager.getLogger(FoodPage.class);
     private BaseFunc baseFunc;
 
@@ -14,16 +15,14 @@ public class FoodPage {
         this.baseFunc = baseFunc;
     }
 
-    //можем искать наш Рецепт Дня по локатору
-    public List<WebElement> getReceiptElements(By receiptLocator) {
-        List<WebElement> receiptsListElements = baseFunc.getElements(receiptLocator);
-        return receiptsListElements;
+    public List<String> getUrlsList() {
+        List<String> urlsList = baseFunc.getUrlList(RECEIPT);
+        return urlsList;
     }
 
-    //сохранять ссылку на наш Рецепт Дня
-    public String saveDayReceipt(WebElement receiptsListElements) {
-        String receiptUrl = baseFunc.getUrl(receiptsListElements);
-        LOGGER.info("Saved Link for receipt on Receipts Page" + receiptUrl);
-        return receiptUrl;
+    public String getReceiptOfTheDay(List<String> receiptUrlList) {
+        String receiptOfTheDayUrl = receiptUrlList.get(0);
+        LOGGER.info("Receipt of the day is: " + receiptOfTheDayUrl);
+        return receiptOfTheDayUrl;
     }
 }

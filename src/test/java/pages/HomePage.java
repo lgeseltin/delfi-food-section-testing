@@ -6,6 +6,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 public class HomePage {
+
+    private static final By FOOD_SECTION = By.xpath("//a[contains(@class, 'nav-link') and contains(.//span, 'Еда')]");
     private static final Logger LOGGER = LogManager.getLogger(HomePage.class);
     private BaseFunc baseFunc;
 
@@ -13,13 +15,11 @@ public class HomePage {
         this.baseFunc = baseFunc;
     }
 
-    //можем искать нашу кнопку ЕДА по локатору
-    public WebElement getFoodPageButtonElement(By foodLocator) {
-        WebElement foodPageButtonElement = baseFunc.getElement(foodLocator);
+    public WebElement getFoodPageButtonElement() {
+        WebElement foodPageButtonElement = baseFunc.getElement(FOOD_SECTION);
         return foodPageButtonElement;
     }
 
-    //можем сохранять линк по найденному локатору
     public String saveFoodLink(WebElement foodPageButtonElement) {
         String url = baseFunc.getUrl(foodPageButtonElement);
         LOGGER.info("Saved Link for FoodPageButton on Home Page " + url);

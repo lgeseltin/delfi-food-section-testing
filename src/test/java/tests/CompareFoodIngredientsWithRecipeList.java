@@ -6,99 +6,74 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import pages.BaseFunc;
+import pages.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-
+import java.util.Map;
 
 public class CompareFoodIngredientsWithRecipeList {
     private static final Logger LOGGER = LogManager.getLogger(CompareFoodIngredientsWithRecipeList.class);
-// private static final - константа
     private static final String DESKTOP_URL = "rus.delfi.lv/";
-    private static final By FOOD_SECTION = By.xpath("//a[contains(@class, 'nav-link') and contains(.//span, 'Еда')]");
-    private static final By TASTY_SECTION = By.xpath("//a[contains(@class, 'nav-link') and contains(.//span, 'TASTY')]");
-    private static final By RECEIPT_SECTION = By.xpath("//*[@id=\"navigation-collapse\"]/ul/li[3]/a");
-    //    private static final By RECEIPTS = By.xpath("//div/a[contains(@href, 'recepty')]");
-    private static final By RECEIPTS = By.xpath("//div[contains(@class, 'pull-right')]//a[contains(@href, 'recepty')]");
-    private static final By INGREDIENTS_LIST = By.xpath("//div[contains(@class, 'ing-list-item')]/a");
-    private static final By RECEIPT_LIST = By.xpath("//*[contains(@class, 'article-collection')]/div/a");
 
-    // Делаем экземпляр класа (наш объект) BaseFunc
     private BaseFunc baseFunc = new BaseFunc();
+    private HomePage homePage = new HomePage(this.baseFunc);
+    private FoodPage foodPage = new FoodPage(this.baseFunc);
+    private RecieptPage recieptPage = new RecieptPage(this.baseFunc);
+    private IngridientPage ingridientPage = new IngridientPage(this.baseFunc);
 
-//объявляем массивы для будущих списков и один делаем булеан для сравнения
-    List<String> ingredientsListUrls = new ArrayList<>();
-    List<String> receiptListUrls = new ArrayList<>();
-    List<Boolean> isReceiptIsPresentOnIngredientsPage = new ArrayList<>();
+    private Map<String, Boolean> isReceiptPresentIngredientPage = new HashMap<>();
 
     @Before
-    // public - мы видим эту штуку везде
-    // void - ничего не возвращаем
-    public void prepareWebpage() {
-        //открываем браузер и запихиваем в него ссылку
+    public void openBrowser() {
         baseFunc.goToUrl(DESKTOP_URL);
-
-        // ищем Web элемент по xPath для вкладки еда
-        WebElement element = baseFunc.getElement(FOOD_SECTION);
-
-        //по найденному элементу мы сохраняем линк
-        String url = baseFunc.getUrl(element);
-
-        // переходим по сохранённому линку
-        baseFunc.goToUrl(url);
     }
 
     @Test
-    public void collectReceiptIngredientsAndCompareWithReceiptList() {
-        //ищем по xPath наше блюдо
-        WebElement element = baseFunc.getElement(RECEIPTS);
+    public void checkingUrlOnMainPage() {
+        WebElement foodPageBtn = homePage.getFoodPageButtonElement();
+        String linkForFoodPage = homePage.saveFoodLink(foodPageBtn);
+        baseFunc.goToUrl(linkForFoodPage);
 
-        //сохраняем ссылку для нашего блюда
-        String receiptUrl = baseFunc.getUrl(element);
+        List<String> receiptListUrls = foodPage.getUrlsList();
+        String linkReceiptOfTheDay = foodPage.getReceiptOfTheDay(receiptListUrls);
 
-        //переходим по ссылке на наше блюдо
-        baseFunc.goToUrl(receiptUrl);
+        baseFunc.goToUrl(linkReceiptOfTheDay);
+        List<WebElement> ingredientWebElementList = recieptPage.getIngridientListFromReceiptPage();
+        Map<String, String> ingredientNameAndUrl;
+        ingredientNameAndUrl = recieptPage.collectIngredientsNameAndUrl(ingredientWebElementList);
 
-        //собираем список ссылок на наши ингриденты
-        ingredientsListUrls = baseFunc.getUrlList(INGREDIENTS_LIST);
-
-        //выводим в консоль найденные ссылки на ингридиенты
-        baseFunc.printUrlList(ingredientsListUrls);
-
-        //для каждой найденной ссылки ингридиентов заходим на неё и ищем нашу ссылку на рецепт
-        for (String url : ingredientsListUrls) {
-
-            //переходим на ссылку ингридиента
-            baseFunc.goToUrl(url);
-
-            //сохраняем список рецептов на странице ингридиента
-            receiptListUrls = baseFunc.getUrlList(RECEIPT_LIST);
-
-            //сравниваем, есть ли на странице ингридиента наше блюдо
-            if (receiptListUrls.contains(receiptUrl)) {
-
-                //оно присутствует на странице - добавляем булеан - True
-                isReceiptIsPresentOnIngredientsPage.add(true);
-
-                //выводим в логгер наличие рецепта на странице игридиента
-                LOGGER.info("Receipt is present on page " + url);
+        for (Map.Entry<String, String> entry : ingredientNameAndUrl.entrySet()) {
+            String ingredientTitle = entry.getKey();
+            String ingredientUrl = entry.getValue();
+            if (!ingredientUrl.isEmpty()) {
+                baseFunc.goToUrl(ingredientUrl);
+                List<String> allReceiptsUrlFromIngredientPage = ingridientPage.getReceiptsFromPage();
+                if (allReceiptsUrlFromIngredientPage.contains(linkReceiptOfTheDay)) {
+                    //LOGGER.info("Receipt on Ingredient page is found " + ingredientUrl);
+                    ingridientPage.collectInfoAboutRecieptUrlOnIngridientPage(ingredientUrl, true);
+                } else {
+                    //LOGGER.info("Receipt on Ingredient page is NOT found " + ingredientUrl);
+                    ingridientPage.collectInfoAboutRecieptUrlOnIngridientPage(ingredientUrl, false);
+                }
             } else {
-                isReceiptIsPresentOnIngredientsPage.add(false);
-                LOGGER.info("Receipt is NOT present on page " + url);
+                LOGGER.info("No Link on Ingredient: " + ingredientTitle);
             }
         }
-
-        //Проверяем булеан присутствия в списке игридиентов на наличие False  параметра. Если есть хоть один - то выводим тест фэйл
-        Assert.assertTrue("Receipt is not present on page", !isReceiptIsPresentOnIngredientsPage.contains(false));
+        for (Map.Entry<String, Boolean> entry : isReceiptPresentIngredientPage.entrySet()) {
+            String ingredientUrl = entry.getKey();
+            Boolean isUrlPresent = entry.getValue();
+            if (!isUrlPresent) {
+                LOGGER.info(ingredientUrl + " Receipt is missing");
+            }
+            Assert.assertTrue("No Receipt on Ingredient Page " + ingredientUrl, isUrlPresent);
+        }
     }
 
     @After
     public void closeBrowser() {
-        LOGGER.info("Browser closed gracefully");
         baseFunc.quitDriver();
+        LOGGER.info("Browser was closed successfully");
     }
 }

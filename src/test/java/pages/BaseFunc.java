@@ -65,11 +65,12 @@ public class BaseFunc {
 
     public void goToUrl(String url) {
         if (!url.contains("http://") && !url.contains("https://")) {
+            LOGGER.info("URL missing http" + url);
             url = "http://" + url;
         }
         LOGGER.info("Opening " + url);
         driver.get(url);
-        driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     }
 
     public List<WebElement> getElements(By locator) {
